@@ -50,7 +50,7 @@ class CoachToolsModule extends KolibriModule {
           name: PageNames.COACH_TOPICS_PAGE,
           path: REPORTS_URL_PATTERN,
           handler: (toRoute, fromRoute) => {
-            actions.showTopicsPage(store, toRoute.params);
+            actions.showReport(store, toRoute.params);
           },
         },
         {
@@ -64,7 +64,7 @@ class CoachToolsModule extends KolibriModule {
           name: PageNames.COACH_LEARNERS_PAGE,
           path: REPORTS_URL_PATTERN,
           handler: (toRoute, fromRoute) => {
-            actions.showLearnersPage(store, toRoute.params);
+            actions.showReport(store, toRoute.params);
           },
         },
         {
