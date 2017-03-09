@@ -3,7 +3,6 @@
   <core-modal
     :title="$tr('addNewAccountTitle')"
     :has-error="errorMessage ? true : false"
-    @enter="createNewUser"
     @cancel="close"
   >
     <form @submit.prevent="createNewUser">
@@ -171,12 +170,13 @@
         this.confirmationMessage = '';
       },
       close() {
-        this.$emit('close'); // signal parent to close
+        this.displayModal(false);
       },
     },
     vuex: {
       actions: {
         createUser: actions.createUser,
+        displayModal: actions.displayModal,
       },
     },
   };
