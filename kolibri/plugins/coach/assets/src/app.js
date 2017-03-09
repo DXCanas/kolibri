@@ -9,6 +9,24 @@ const actions = require('./actions');
 const store = require('./state/store');
 const PageNames = require('./state/constants').PageNames;
 
+const RECENT_URL_PATTERN = [
+  ':class_id',
+  '/recent',
+  ':channel_id'
+].join('/');
+
+
+const REPORTS_URL_PATTERN = [
+  ':class_id',
+  ':view_by_content_or_learners',
+  ':channel_id',
+  ':content_scope',
+  ':content_scope_id',
+  ':user_scope',
+  ':user_scope_id',
+  ':sort_column',
+  ':sort_order',
+].join('/');
 
 class CoachToolsModule extends KolibriModule {
   ready() {
@@ -16,23 +34,23 @@ class CoachToolsModule extends KolibriModule {
       const routes = [
         {
           name: PageNames.COACH_CLASS_LIST_PAGE,
-          path: '/classes',
+          path: '/',
           handler: (toRoute, fromRoute) => {
             actions.showClassListPage(store);
           },
         },
         {
           name: PageNames.COACH_RECENT_PAGE,
-          path: '/classes/:id/recent',
+          path: RECENT_URL_PATTERN,
           handler: (toRoute, fromRoute) => {
             actions.showRecentPage(store, toRoute.params);
           },
         },
         {
           name: PageNames.COACH_TOPICS_PAGE,
-          path: '/classes/:id/topics',
+          path: REPORTS_URL_PATTERN,
           handler: (toRoute, fromRoute) => {
-            actions.showTopicsPage(store, toRoute.params);
+            actions.showReport(store, toRoute.params);
           },
         },
         {
@@ -44,9 +62,9 @@ class CoachToolsModule extends KolibriModule {
         },
         {
           name: PageNames.COACH_LEARNERS_PAGE,
-          path: '/classes/:id/learners',
+          path: REPORTS_URL_PATTERN,
           handler: (toRoute, fromRoute) => {
-            actions.showLearnersPage(store, toRoute.params);
+            actions.showReport(store, toRoute.params);
           },
         },
         {
@@ -55,10 +73,6 @@ class CoachToolsModule extends KolibriModule {
           handler: (toRoute, fromRoute) => {
             actions.showGroupsPage(store, toRoute.params.id);
           },
-        },
-        {
-          path: '/',
-          redirect: '/classes',
         },
       ];
 
