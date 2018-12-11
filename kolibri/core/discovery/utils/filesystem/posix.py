@@ -40,6 +40,13 @@ def get_drive_list():
 
     if sys.platform == "darwin":
         MOUNT_PARSER = OSX_MOUNT_PARSER
+    elif 'ANDROID_ARGUMENT' in os.environ:
+        # This should only ever happen on android
+        try:
+            return get_android_drive_list()
+        except Exception as e:
+            logging.error(e)
+            raise e
     else:
         MOUNT_PARSER = LINUX_MOUNT_PARSER
 
@@ -83,6 +90,66 @@ def get_drive_list():
             "guid": dbus_drive_info.get("guid") or diskutil_info.get("guid") or drive["device"],
         })
 
+    return drives
+
+
+def get_android_drive_list():
+    from jnius import autoclass
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
+    StatFs = autoclass('android.os.StatFs')
+
+    # Returns an array of private directories (Gets removed on uninstall) for
+    # "Secondary" storage options. According Android to implementation details,
+    # these should be semi-permanent (sd under batt). In practice, this isn't the case.
+    private_dir_files = PythonActivity.getExternalFilesDirs(None)
+
+    drives = []
+
+    for private_dir_file in private_dir_files:
+        # Could try and use "real path"
+        private_dir = private_dir_file.getAbsolutePath()
+        current_home_dir = PythonActivity.getExternalFilesDir(None).getAbsolutePath()
+
+        if not os.path.samefile(private_dir, current_home_dir):
+            # Go up the path until we've hit Android. Stop at Android's parent
+            temp_drive_path = private_dir
+            drive_path_found = False
+            while not drive_path_found:
+                logging.debug('temp_drive_path is {}'.format(temp_drive_path))
+                try:
+                    (temp_drive_path, tail) = os.path.split(temp_drive_path)
+                    logging.debug('tail is {}'.format(tail))
+                    # The Android directory is where Android-managed data goes.
+                    # This includes our app's private dir.
+                    if tail == 'Android':
+                        logging.debug('Drive path found')
+                        drive_path_found = True
+                        st = StatFs(temp_drive_path)
+
+                        try:
+                            drives.append({
+                                "name": os.path.dirname(temp_drive_path),
+                                "path": temp_drive_path,
+                                "freespace": st.getAvailableBlocksLong() * st.getBlockSizeLong(),
+                                "totalspace": st.getBlockCountLong() * st.getBlockSizeLong(),
+                                "guid": '',
+                            })
+                        except Exception as e:
+                            drives.append({
+                                "name": os.path.dirname(temp_drive_path),
+                                "path": temp_drive_path,
+                                "freespace": st.getAvailableBlocks() * st.getBlockSize(),
+                                "totalspace": st.getBlockCount() * st.getBlockSize(),
+                                "guid": '',
+                            })
+                            raise e
+
+                except Exception as e:
+                    raise e
+        else:
+            logging.debug('Found samefile! Home should be {}'.format(private_dir))
+
+    logging.debug('list to be returned: {}'.format(drives))
     return drives
 
 
