@@ -39,6 +39,13 @@ buildkite-agent artifact download 'dist/*.deb' dist/
 buildkite-agent artifact download 'dist/*.exe' dist/
 buildkite-agent artifact download 'dist/*.dmg' dist/
 
+mkdir -p test
+buildkite-agent artifact download 'dist/*.dmg' test/
+
+ls -a dist
+ls -a test
+
+
 {
     buildkite-agent artifact download '*.exe' dist/ --step "Sign Windows installer"
 } || {
