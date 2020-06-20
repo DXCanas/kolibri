@@ -2,37 +2,22 @@
 
 set -euo pipefail
 
-SCRIPTPATH=$(pwd)
-PIP_PATH="$SCRIPTPATH/env/bin/pip"
-PYTHON_PATH="$SCRIPTPATH/env/bin/python"
+# Download all build installers here
+buildkite-agent artifact download 'dist/*'
+buildkite-agent artifact download 'installer/*.exe'
 
-echo "Now creating virtualenv..."
-virtualenv -p python3.5 env
-if [ $? -ne 0 ]; then
-    echo ".. Abort!  Can't create virtualenv."
-    exit 1
-fi
+trap "rm upload_artifacts.iid" err exit
 
-PIP_CMD="$PIP_PATH install -r requirements/pipeline.txt"
-echo "Running $PIP_CMD..."
-$PIP_CMD
-if [ $? -ne 0 ]; then
-    echo ".. Abort!  Can't install '$PIP_CMD'."
-    exit 1
-fi
+docker build \
+  -f docker/upload_artifacts.dockerfile \
+  --iidfile upload_artifacts.iid \
+  -t "learningequality/upload-release-artifacts"
+  .
 
-PYTHON_CMD="$PYTHON_PATH .buildkite/upload_artifacts.py"
-echo "Now excuting  upload artifacts script..."
-mkdir -p dist
-mkdir -p installer
-buildkite-agent artifact download 'dist/*.pex' dist/
-buildkite-agent artifact download 'dist/*.whl' dist/
-buildkite-agent artifact download 'dist/*.tar.gz' dist/
-buildkite-agent artifact download 'installer/*.exe' installer/
-# buildkite-agent artifact download 'installer/*.apk' installer/
-
-$PYTHON_CMD
-if [ $? -ne 0 ]; then
-    echo ".. Abort!  Can't execute '$PYTHON_CMD'."
-    exit 1
-fi
+docker run --rm \
+  -v $PWD/dist:/dist \
+  -v $GOOGLE_APPLICATION_CREDENTIALS:$GOOGLE_APPLICATION_CREDENTIALS \
+  -e GOOGLE_APPLICATION_CREDENTIALS \
+  -e GITHUB_ACCESS_TOKEN \
+  -e BUILDKITE_TAG \
+  $(more upload_artifacts.iid)
