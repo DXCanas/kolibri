@@ -17,8 +17,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 logging.getLogger().setLevel(logging.INFO)
 
 SPREADSHEET_CREDENTIALS = os.getenv("GOOGLE_SPREADSHEET_CREDENTIALS")
-SPREADSHEET_TPL_KEY = "1kVhg0evo9EV2aDo10KdIIjwqsoT4rISR7dJzf6s_-RM"
+SPREADSHEET_TPL_KEY = "1_463RVipQB2l5Mv675iZy7NjJzNMpAPRc6NSyg0yPKs"
 SPREADSHEET_TITLE = "Integration testing with Gherkin scenarios"
+
 
 # Use to get the Kolibri version, for the integration testing spreadsheet
 def get_tag_name():
