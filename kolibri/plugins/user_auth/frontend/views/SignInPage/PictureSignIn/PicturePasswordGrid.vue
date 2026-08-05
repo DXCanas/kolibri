@@ -59,10 +59,19 @@
       <div class="submit-container">
         <!-- Submit button: shows only a forward-arrow icon; the aria-label
         cycles through four instructional states as the sequence is built. -->
-        <SubmitBurstAnimation
+        <!-- Decorative burst GIF, overlaid on the submit button on success.
+        Mounted only while burstVisible is true, which bounds the looping GIF
+        to a single visible play and restarts it on each successful submit. -->
+        <img
           v-if="burstVisible"
+          :src="burstGif"
           class="submit-burst"
-        />
+          data-testid="submit-burst"
+          alt=""
+          aria-hidden="true"
+          width="120"
+          height="120"
+        >
         <button
           type="submit"
           class="submit-button"
@@ -106,7 +115,7 @@
   import { picturePasswordStrings } from 'kolibri-common/strings/picturePasswords';
   import useKResponsiveElement from 'kolibri-design-system/lib/composables/useKResponsiveElement';
   import PicturePasswordOption from './PicturePasswordOption';
-  import SubmitBurstAnimation from './animations/SubmitBurstAnimation';
+  import burstGif from './animations/Burst-V2.gif';
 
   // Pre-compute once at module scope — PICTURE_PASSWORD_SET is static JSON so
   // there is no benefit to re-deriving this array on every component mount.
@@ -118,7 +127,7 @@
   export default {
     name: 'PicturePasswordGrid',
 
-    components: { PicturePasswordOption, SubmitBurstAnimation },
+    components: { PicturePasswordOption },
 
     setup(props, { emit }) {
       const $themeTokens = themeTokens();
@@ -304,7 +313,9 @@
       const playSuccessAnimation = () => {
         const STAGGER = 150;
         const ICON_BOUNCE_DURATION = 380;
-        const BURST_DURATION = 1100;
+        // Matches the length of one Burst-V2.gif loop (960ms); unmounting the
+        // <img> at this point bounds the looping GIF to a single visible play.
+        const BURST_DURATION = 960;
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const stagger = reduce ? 0 : STAGGER;
         const iconDuration = reduce ? 0 : ICON_BOUNCE_DURATION;
@@ -383,6 +394,7 @@
         bouncingId,
         arrowBouncing,
         burstVisible,
+        burstGif,
         handleSelect,
         handleDisabledSelect,
         handleSubmit,
@@ -511,6 +523,9 @@
     top: 50%;
     left: 50%;
     z-index: 100;
+    width: 120px;
+    height: 120px;
+    pointer-events: none;
     transform: translate(-50%, -50%);
   }
 
@@ -565,6 +580,10 @@
     .bouncing,
     .pulsing {
       animation: none;
+    }
+
+    .submit-burst {
+      display: none;
     }
   }
 
